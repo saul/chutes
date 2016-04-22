@@ -1,6 +1,7 @@
 with Text_IO;
 with Ada.Calendar; use Ada.Calendar;
-with Register_Control; use Register_Control;
+with Ada.Exceptions; use Ada.Exceptions;
+with My_Little_Register_Control; use My_Little_Register_Control;
 with Ada.Interrupts.Names; use Ada.Interrupts.Names;
 with System; use System;
 with Ada.Interrupts; use Ada.Interrupts;
@@ -85,17 +86,27 @@ package body Oh_Chute is
   S : Sensor_Interrupt;
 
   -- returns ball type and time detected,
-  -- blocks the Ada.Interruptscalling task until a ball is detected
+  -- blocks the calling task until a ball is detected
   procedure Get_Next_Sensed_Ball(B: out Ball_Sensed; T: out Time) is
   begin
     S.Wait_For_Ball(B, T);
   end Get_Next_Sensed_Ball;
 begin
+  Text_IO.Put("Attaching parallel line handler (metal sensor)...");
   Attach_Handler(S.Metal_Interrupt'Unrestricted_Access, Parallel_Line);
+  Text_IO.Put_Line("ok");
+
+  Text_IO.Put("Attaching serial line handler (metal sensor)...");
   Attach_Handler(S.Proximity_Interrupt'Unrestricted_Access, Serial_Line);
+  Text_IO.Put_Line("ok");
 
   Initialize_Interfaces;
+  Text_IO.Put_Line("Initialised interfaces");
 
   Text_IO.Put_Line("Turn chutes now");
   Wait_For_Software_Control;
+exception
+  when E: others =>
+    Text_IO.Put_Line(Exception_Information(E));
+    Reraise_Occurrence(E);
 end Oh_Chute;
