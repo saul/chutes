@@ -1,6 +1,5 @@
-with System; use System;
-with MaRTE.Hal.IO; use MaRTE.Hal.IO;
 with MaRTE.Integer_Types; use MaRTE.Integer_Types;
+with MaRTE.Hal.IO; use MaRTE.Hal.IO;
 with Ada.Unchecked_Conversion;
 
 package body My_Little_Register_Control is
@@ -171,13 +170,6 @@ package body My_Little_Register_Control is
     Sier : Serial_Interrupt_Enable_Register_T;
     Slcr : Serial_Line_Control_Register_T;
   begin
-    -- Enable parallel and serial port interrupts
-    -- Note bits are cleared to enable an interrupt
-    Timr := Read_IMR(Inb_P(PC_INTERRUPT_MASK_REG));
-    Timr.Parallel := false;
-    Timr.Serial_Port_1 := false;
-    Outb_P(PC_INTERRUPT_MASK_REG, Write_IMR(Timr));
-
     -- Enable parallel control IRQ
     Tpcr := Read_PCR(Inb_P(PP_CONTROL_REG));
     Tpcr.Enable_IRQ := true;
@@ -203,6 +195,13 @@ package body My_Little_Register_Control is
     Sier := Read_IER(Inb_P(SP_IER_REG));
     Sier.Modem_Status_Interrupt := true;
     Outb_P(SP_IER_REG, Write_IER(Sier));
+
+    -- Enable parallel and serial port interrupts
+    -- Note bits are cleared to enable an interrupt
+    Timr := Read_IMR(Inb_P(PC_INTERRUPT_MASK_REG));
+    Timr.Parallel := false;
+    Timr.Serial_Port_1 := false;
+    Outb_P(PC_INTERRUPT_MASK_REG, Write_IMR(Timr));
   end Initialize_Interfaces;
 
   procedure Write_Hopper_Command_Bits(Command : Hopper_Command) is
@@ -236,6 +235,4 @@ package body My_Little_Register_Control is
       exit when not Tpsr.NotReady;
     end loop;
   end Wait_For_Software_Control;
-begin
-  null;
 end My_Little_Register_Control;

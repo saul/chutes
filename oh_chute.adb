@@ -1,11 +1,12 @@
-with Text_IO;
-with Ada.Calendar; use Ada.Calendar;
 with Ada.Exceptions; use Ada.Exceptions;
-with My_Little_Register_Control; use My_Little_Register_Control;
-with Ada.Interrupts.Names; use Ada.Interrupts.Names;
-with System; use System;
+with Ada.Calendar; use Ada.Calendar;
 with Ada.Interrupts; use Ada.Interrupts;
+with Ada.Interrupts.Names; use Ada.Interrupts.Names;
+with Text_IO;
+with System; use System;
+with My_Little_Register_Control; use My_Little_Register_Control;
 
+pragma Elaborate_All(My_Little_Register_Control);
 package body Oh_Chute is
   -- load hopper
   procedure Hopper_Load is
@@ -38,7 +39,6 @@ package body Oh_Chute is
   end Sorter_Close;
 
   protected type Sensor_Interrupt is
-    pragma Interrupt_Priority(Interrupt_Priority'First);
     entry Wait_For_Ball(B: out Ball_Sensed; T: out Time);
 
     entry Sensed(B: Ball_Sensed);
@@ -49,6 +49,8 @@ package body Oh_Chute is
 
     procedure Proximity_Interrupt;
     pragma Interrupt_Handler(Proximity_Interrupt);
+
+    pragma Priority(Priority'Last);
   private
     Interrupted : Boolean := false;
     Last_Ball : Ball_Sensed;
@@ -93,11 +95,11 @@ package body Oh_Chute is
   end Get_Next_Sensed_Ball;
 begin
   Text_IO.Put("Attaching parallel line handler (metal sensor)...");
-  Attach_Handler(S.Metal_Interrupt'Unrestricted_Access, Parallel_Line);
+  Attach_Handler(S.Metal_Interrupt'Access, Parallel_Line);
   Text_IO.Put_Line("ok");
 
   Text_IO.Put("Attaching serial line handler (metal sensor)...");
-  Attach_Handler(S.Proximity_Interrupt'Unrestricted_Access, Serial_Line);
+  Attach_Handler(S.Proximity_Interrupt'Access, Serial_Line);
   Text_IO.Put_Line("ok");
 
   Initialize_Interfaces;
@@ -105,8 +107,4 @@ begin
 
   Text_IO.Put_Line("Turn chutes now");
   Wait_For_Software_Control;
-exception
-  when E: others =>
-    Text_IO.Put_Line(Exception_Information(E));
-    Reraise_Occurrence(E);
 end Oh_Chute;

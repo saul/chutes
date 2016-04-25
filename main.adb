@@ -1,3 +1,6 @@
+pragma Locking_Policy(Ceiling_Locking);
+pragma Task_Dispatching_Policy(FIFO_Within_Priorities);
+
 with Ada;
 with Text_IO;
 with Calendar; use Calendar;
@@ -143,5 +146,5 @@ procedure Main is
   end BallDetector;
 
 begin
-  Text_IO.Put_Line("I'm ready for your balls - v2");
+  Text_IO.Put_Line("I'm ready for the balls");
 end Main;
